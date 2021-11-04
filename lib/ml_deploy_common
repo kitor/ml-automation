@@ -1,0 +1,43 @@
+
+function create_artifact() {
+    log info "Create autoexec.bin artifact..."
+    pushd "${ML_BUILD_DIR}" > /dev/null
+
+    cp autoexec.bin "${ML_ARTIFACTS_DIR}" || log error "Unable to artifact autoexec.bin"
+    cp *.sym "${ML_ARTIFACTS_DIR}" || log warning "Unable to artifact *.sym"
+    log info "Artifacts dir content:"
+    ls -l "${ML_ARTIFACTS_DIR}"
+
+    popd > /dev/null
+    echo
+}
+
+set_camera_env ${ML_BUILD_MODEL}
+
+# use platform dir, unless user specified a path
+if [ -z "${ML_TYPE}" ]; then
+    export ML_BUILD_DIR="${ML_SRC}/platform/${ML_PLATFORM}"
+else
+    export ML_BUILD_DIR="${ML_SRC}/${ML_TYPE}"
+fi
+
+log info "Deploy common"
+log info "============="
+log info "Platform       ${ML_PLATFORM}"
+log info "Card           Type: ${ML_CARD_TYPE} Device: ${ML_CARD_DEVICE}"
+log info "Build dir      ${ML_BUILD_DIR}"
+log info "Artifacts dir  ${ML_ARTIFACTS_DIR}"
+log info "============="
+echo
+
+
+if [ ! -d "${ML_ARTIFACTS_DIR}" ]; then
+    log info "Create artifacts dir if missing"
+    mkdir -p "${ML_ARTIFACTS_DIR}" || log error "Unable to create artifacts diretory!"
+fi
+
+log info "Remove old autoexec.bin artifacts"
+rm -f "${ML_ARTIFACTS_DIR}/autoexec.bin" || log warning "autoexec.bin does not exist"
+rm -f "${ML_ARTIFACTS_DIR}/"*.sym || log warning "*.sym does not exist"
+
+create_artifact

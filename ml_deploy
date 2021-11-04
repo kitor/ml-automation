@@ -1,0 +1,14 @@
+#!/bin/bash
+
+. "${0%/*}/ml_env"
+
+export ML_BUILD_MODEL="${1}"
+
+. "${ML_BIN}/lib/ml_common"
+. "${ML_BIN}/lib/ml_deploy_common"
+
+log info "Call move_to_card ${ML_CARD_DEVICE}"
+
+sudo ${ML_BIN}/ml_card_deploy "${ML_BUILD_MODEL}" || log error "Unable to deploy!"
+
+log info "done."

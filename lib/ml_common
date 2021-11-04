@@ -1,0 +1,27 @@
+#[[ -z "${DEV_ROOT}" ]] && export DEV_ROOT="${0%/*}/../"
+#export SCRIPTS_ROOT="${DEV_ROOT}"
+
+# common logging functions, etc
+source "${ML_BIN}/lib/common"
+source "${ML_BIN}/.config"
+
+# print ML env
+if [ ! -z "${DEBUG}" ]; then
+    log info "ML environment"
+    log info "=============="
+    ml_env | while read line ; do log info $line ; done
+    log info "=============="
+    echo
+fi
+
+function set_card_device()
+{
+    case ${1} in
+        sd)
+            export ML_CARD_DEVICE="${ML_CARD_DEVICE_SD}"
+            ;;
+        cf)
+            export ML_CARD_DEVICE="${ML_CARD_DEVICE_CF}"
+            ;;
+    esac
+}

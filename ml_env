@@ -1,0 +1,42 @@
+
+# determine ml_root based on bin directory
+
+# for sourcing in .zsh
+ML_BIN="${_%/*}/"
+# for sourcing in bash
+[ ! -z "$BASH_SOURCE" ] && ML_BIN="${BASH_SOURCE%/*}"
+ML_BIN=$(realpath $ML_BIN)
+
+# export ML_ROOT, base for all paths
+export ML_ROOT=$(realpath $ML_BIN/../)
+
+export ML_BIN=${ML_ROOT}/bin
+export ML_SRC=${ML_ROOT}/src/ml
+
+export PATH=${ML_BIN}:${PATH}
+export PATH=~/gcc-arm-none-eabi-7-2018-q2-update/bin:${PATH}
+
+export MAKEFLAGS="-j$(nproc)"
+
+function remake()
+{
+    echo "$@"
+    make "$@" clean
+    make "$@"
+}
+
+function ml_uart()
+{
+    local port=$1
+    [ -z "$1" ] && port=3
+    sudo minicom -D /dev/ttyS${port} -b 115200
+}
+
+function ml_env()
+{
+    env | grep -e "^ML_" | sort
+}
+
+alias ml_src="cd ${ML_SRC}"
+alias gcp="git cherry-pick --no-commit"
+

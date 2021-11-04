@@ -1,0 +1,67 @@
+#!/bin/bash
+
+. "${0%/*}/ml_env"
+
+# input args
+[[ -z ${1} ]] && "Build model not defined!"
+#[[ -z ${2} ]] && "Target card device not defined!"
+export ML_BUILD_MODEL="${1}"
+#export ML_CARD_DEVICE="${2}"
+
+. "${ML_BIN}/lib/ml_common"
+. "${ML_BIN}/lib/ml_deploy_common"
+
+
+function umount_card(){
+    sync
+    umount "${ML_CARD_MOUNT_DIR}"
+}
+
+function mount_card(){
+    mkdir -p "${ML_CARD_MOUNT_DIR}" || log error "Cannot create directory for card mount"
+    mount -t "${ML_CARD_FS}" "${ML_CARD_DEVICE}" "${ML_CARD_MOUNT_DIR}" || log error "Unable to mount card!"
+}
+
+log info "Deploy files to card"
+
+if mount | grep "${ML_CARD_MOUNT_DIR}" > /dev/null; then
+    log warning "Card was mounted before script execution"
+    log warning "Umounting for clean state."
+
+    umount_card
+    umount_card #twice just in case, because WSL.
+    if mount | grep "${ML_CARD_MOUNT_DIR}"; then
+        log error "Card is still mounted, aborting!"
+    fi
+    log info "Card unmounted successfully"
+fi
+
+echo
+log info "Deploy card"
+log info "==========="
+log info "Source   ${ML_ARTIFACTS_DIR}"
+log info "Target   ${ML_CARD_MOUNT_DIR}"
+log info "Device   ${ML_CARD_DEVICE}"
+log info "==========="
+echo
+
+mount_card
+
+cp "${ML_ARTIFACTS_DIR}/autoexec.bin" "${ML_CARD_MOUNT_DIR}" || log error "Unable to copy autoexec.bin to card!"
+if [[ ! -z "${ML_TYPE}" ]]; then
+    cp -r ${ML_ARTIFACTS_DIR}/ML "${ML_CARD_MOUNT_DIR}" || log error "Unable to copy ML directory to card!"
+    mkdir -p "${ML_CARD_MOUNT_DIR}"/ML/modules
+    cp -r ${ML_ARTIFACTS_DIR}/*.sym "${ML_CARD_MOUNT_DIR}"/ML/modules || log error "Unable to copy *.sym to card!"
+fi
+
+log info "Card after deployment:"
+ls -l "${ML_CARD_MOUNT_DIR}"
+
+log info "Umount card"
+umount_card || log error "Card unmounting failed!"
+
+if mount | grep "${ML_CARD_MOUNT_DIR}"; then
+    log error "Card is still mounted, aborting!"
+fi
+
+log info "Artfacts deployed successfully"

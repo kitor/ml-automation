@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+
+import os
+import argparse
+
+import PIL.Image
+
+
+def YUV2RGB(Y, U, V):
+    U = U - 128
+    V = V - 128
+    Y = Y - 16
+    R = int(Y + 1.596 * V)
+    G = int(Y - 0.344 * U - 0.714 * V)
+    B = int(Y + 1.770 * U)
+    return (R, G, B)
+
+
+def main():
+    args = parse_args()
+
+    with open(args.file, "rb") as f:
+        data = list(f.read())
+
+    data = data[args.offset :]
+
+    multiplier = 4 / 2  # 4 bytes per 2 pixels
+    if args.alpha:
+        multiplier = 6 / 2  # 6 bytes per 2 pixels
+
+    num_bytes = len(data)
+    width = args.width
+    row_bytes = width * multiplier
+
+    height = int(num_bytes / row_bytes)
+
+    print("Computed height: {}".format(height))
+
+    # pad the end so we always have at least w * h bytes
+    data.extend([0] * int(width * multiplier))
+
+    img = PIL.Image.new("RGBA", (width, height), "white")
+    pixels = img.load()  # Create the pixel map
+    A = 255
+    for y in range(height):
+        for x in range(0, width - 1, 2):
+            row_off = int(y * (width * multiplier))
+            elem_off = int(x * multiplier)
+            U = data[row_off + elem_off + 0]
+            Y1 = data[row_off + elem_off + 1]
+            V = data[row_off + elem_off + 2]
+            Y2 = data[row_off + elem_off + 3]
+
+            if args.alpha:
+                A = data[row_off + elem_off + 4]
+            R, G, B = YUV2RGB(Y1, U, V)
+            pixels[x, y] = (R, G, B, A)
+
+            if args.alpha:
+                A = data[row_off + elem_off + 5]
+            R, G, B = YUV2RGB(Y2, U, V)
+            pixels[x + 1, y] = (R, G, B, A)
+
+    if args.crop:
+        off_x = (width - args.c_width) / 2
+        off_y = (height - args.c_height) / 2
+        img = img.crop((off_x, off_y, off_x + args.c_width, off_y + args.c_height))
+    img.save("{}.png".format(os.path.basename(args.file)))
+
+
+def parse_args():
+    description = """ Util for displaying binary data as bitmap.
+    """
+
+    parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument("file", default="RGB_0000.bin", help="Input file path")
+    parser.add_argument(
+        "-w",
+        "--width",
+        default=960,
+        type=int,
+        help="Width of output, default: %(default)s",
+    )
+    parser.add_argument("-o", "--offset", default=0, type=int, help="Offset (bytes)")
+    parser.add_argument("--crop", action="store_true", help="Crop center 720x480")
+    parser.add_argument("--c_width", default=720, type=int, help="Crop width.")
+    parser.add_argument("--c_height", default=480, type=int, help="Crop height.")
+    parser.add_argument(
+        "--alpha", action="store_true", help="Use UYVYAA instead of UYVY"
+    )
+
+    args = parser.parse_args()
+    if not os.path.isfile(args.file):
+        print("File not found: {}".format(file))
+        exit(1)
+
+    return args
+
+
+if __name__ == "__main__":
+    main()

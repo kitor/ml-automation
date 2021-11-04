@@ -1,0 +1,27 @@
+function _isFunction() {
+    declare -f -F "${1}" > /dev/null && return 0 || return 1
+}
+
+function log() {
+    function info(){
+        echo "${@}" | sed 's/^/--> [INF] /g' >&2
+    }
+    function warning(){
+        echo "${@}" | sed 's/^/--> [WRN] /g' >&2
+    }
+    function error(){
+        echo "${@}" | sed 's/^/--> [ERR] /g' >&2
+        exit 1
+    }
+    function description(){
+        echo "${@}" | sed 's/^/DESCRIPTION: /g' >&2
+    }
+
+    local loglevel="${1}"
+    shift
+    if _isFunction "${loglevel}"; then
+        "${loglevel}" "${@}"
+    else
+        error "Invalid log level \`${loglevel}\`"
+    fi
+}

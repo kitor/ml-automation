@@ -1,0 +1,39 @@
+#!/bin/bash
+
+. "${0%/*}/ml_env"
+
+export ML_BUILD_MODEL="${1}"
+
+. "${ML_BIN}/lib/ml_common"
+
+#override artifacts directory
+export ML_ARTIFACTS_DIR="$ML_ARTIFACTS_DIR_QEMU"
+
+. "${ML_BIN}/lib/ml_deploy_common"
+
+#qemu-specific paths
+export QEMU_DIR="${ML_ROOT}/qemu-eos${QEMU_TYPE}"
+export QEMU_FILE="${QEMU_DIR}/${ML_CARD_TYPE}.img"
+
+log info "Deploy for QEMU"
+log info "==========="
+log info "QEMU_DIR      ${QEMU_DIR}"
+log info "Target image  ${QEMU_FILE}"
+log info "==========="
+echo
+
+log info "Create card image"
+pushd "${QEMU_DIR}" > /dev/null
+
+rm -f "${QEMU_FILE}" || log error "Cannot remove old image!"
+
+log info "create ${ML_CARD_TYPE}.img from artifacts dir"
+virt-make-fs --partition --size=512M --type=vfat "${ML_ARTIFACTS_DIR}" "${QEMU_FILE}"
+
+log info "make ${ML_CARD_TYPE}.img bootable"
+"${ML_BIN}/bootdisk.py" -pi "${QEMU_FILE}"
+echo
+popd > /dev/null
+
+log info "done."
+
