@@ -12,7 +12,7 @@ export ML_ARTIFACTS_DIR="$ML_ARTIFACTS_DIR_QEMU"
 . "${ML_BIN}/lib/ml_deploy_common"
 
 #qemu-specific paths
-export QEMU_DIR="${ML_ROOT}/qemu-eos${QEMU_TYPE}"
+export QEMU_DIR="${ML_ROOT}/qemu-eos${ML_QEMU_TYPE}"
 export QEMU_FILE="${QEMU_DIR}/${ML_CARD_TYPE}.img"
 
 log info "Deploy for QEMU"
