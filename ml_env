@@ -32,6 +32,14 @@ function ml_uart()
     sudo minicom -D /dev/ttyS${port} -b 115200
 }
 
+# run make clean over all minimial subdirs
+function ml_clean_minimal()
+{
+    pushd ${ML_SRC}/minimal
+    find * -type d | xargs -I{} bash -c "cd {}; make MODEL=R clean"
+    popd
+}
+
 function ml_env()
 {
     env | grep -e "^ML_" | sort
