@@ -38,10 +38,12 @@ Port number is optional as 1st argument, defaults to `3`.
 ### `ml_env`
 File to be sourced in `.bashrc` \ `.zshrc` to expose all the functionality in shell.
 
+### `canon_bootdisk.py`
+A tool to make card  / card image bootable on Canon EOS cameras, written by [@lorenzo33324](https://github.com/lclevy)
+See [canon_bootdisk.md](canon_bootdisk.md) for more details.
+
 ## Requirements
 For `ml_deploy_qemu`:
-* `bootdisk.py` by @lorenzo33324  deployed in `$ML_DIR\bin`
-  * TODO: add link when it gets published, atm available only on Discord archives.
 * `virt-make-fs`
 
 ## Directory structure
