@@ -20,9 +20,19 @@ export MAKEFLAGS="-j$(nproc)"
 
 function remake()
 {
-    echo "$@"
-    make "$@" clean
-    make "$@"
+    echo "Make args: $@"
+    # filter out params for make clean
+    OLD_IFS=$IFS
+    IFS=" "
+    clean_arg=""
+    for arg in $@; do
+        echo $arg | grep -qE "MODEL=.+"
+        [[ $? -eq 0 ]] && clean_arg="$arg"
+    done
+    IFS="$OLD_IFS"
+    echo "Make clean args: $clean_arg"
+    # execute commands
+    make $clean_arg clean && make $@
 }
 
 function ml_uart()
