@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os
+import os, re
 import argparse
 
 import PIL.Image
@@ -19,6 +19,26 @@ def YUV2RGB(Y, U, V):
 def main():
     args = parse_args()
 
+    if not args.all:
+        # check if file exists
+        if not os.path.isfile(args.file):
+            print("File not found: {}".format(file))
+            exit(1)
+
+        parseFile(args)
+    else:
+        # find all files to loop over
+        files = [
+            f
+            for f in os.listdir(".")
+            if os.path.isfile(f) and re.match(r"^YCC_(.*)\.bin$", f)
+        ]
+        for f in files:
+            args.file = f
+            parseFile(args)
+
+
+def parseFile(args):
     with open(args.file, "rb") as f:
         data = list(f.read())
 
@@ -74,11 +94,16 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description=description)
 
-    parser.add_argument("file", default="RGB_0000.bin", help="Input file path")
+    parser.add_argument("--file", "-f", default="YCC_V_00.bin", help="Input file path")
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Convert all files named RGB_*.bin in current directory",
+    )
     parser.add_argument(
         "-w",
         "--width",
-        default=960,
+        default=1024,
         type=int,
         help="Width of output, default: %(default)s",
     )
@@ -90,12 +115,7 @@ def parse_args():
         "--alpha", action="store_true", help="Use UYVYAA instead of UYVY"
     )
 
-    args = parser.parse_args()
-    if not os.path.isfile(args.file):
-        print("File not found: {}".format(file))
-        exit(1)
-
-    return args
+    return parser.parse_args()
 
 
 if __name__ == "__main__":

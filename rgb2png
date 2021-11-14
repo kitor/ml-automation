@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os
+import os, re
 import argparse
 
 import PIL.Image
@@ -9,6 +9,26 @@ import PIL.Image
 def main():
     args = parse_args()
 
+    if not args.all:
+	# check if file exists
+        if not os.path.isfile(args.file):
+            print("File not found: {}".format(file))
+            exit(1)
+
+        parseFile(args)
+    else:
+        # find all files to loop over
+        files = [
+            f
+            for f in os.listdir(".")
+            if os.path.isfile(f) and re.match(r"^RGB_(.*)\.bin$", f)
+        ]
+        for f in files:
+            args.file = f
+            parseFile(args)
+
+
+def parseFile(args):
     with open(args.file, "rb") as f:
         data = list(f.read())
 
@@ -17,6 +37,7 @@ def main():
     num_bytes = len(data)
     width = args.width
     height = num_bytes // (width * 4)
+    print("File: {}".format(args.file))
     print("Computed height: {}".format(height))
 
     # pad the end so we always have at least w * h bytes
@@ -45,7 +66,12 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description=description)
 
-    parser.add_argument("file", default="RGB_0000.bin", help="Input file path")
+    parser.add_argument("--file", "-f", default="RGB_0000.bin", help="Input file path")
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Convert all files named RGB_*.bin in current directory",
+    )
     parser.add_argument(
         "-w",
         "--width",
@@ -60,12 +86,7 @@ def parse_args():
     parser.add_argument("--c_width", default=720, type=int, help="Crop width.")
     parser.add_argument("--c_height", default=480, type=int, help="Crop height.")
 
-    args = parser.parse_args()
-    if not os.path.isfile(args.file):
-        print("File not found: {}".format(file))
-        exit(1)
-
-    return args
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
