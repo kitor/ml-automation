@@ -45,6 +45,8 @@ See [canon_bootdisk.md](canon_bootdisk.md) for more details.
 ## Requirements
 For `ml_deploy_qemu`:
 * `virt-make-fs`
+* `linux-image-amd64` / `linux-image-generic` or equiv. if you run WSL1 (required by `virt-make-fs`)
+* make sure that `/boot` and `/boot/*` is readable by normal user
 
 ## Directory structure
 ```
