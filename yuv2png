@@ -54,6 +54,7 @@ def parseFile(args):
 
     height = int(num_bytes / row_bytes)
 
+    print("File: {}".format(args.file))
     print("Computed height: {}".format(height))
 
     # pad the end so we always have at least w * h bytes

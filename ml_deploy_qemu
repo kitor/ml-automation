@@ -28,7 +28,7 @@ pushd "${QEMU_DIR}" > /dev/null
 rm -f "${QEMU_FILE}" || log error "Cannot remove old image!"
 
 log info "create ${ML_CARD_TYPE}.img from artifacts dir"
-virt-make-fs --partition --size=512M --type=vfat "${ML_ARTIFACTS_DIR}" "${QEMU_FILE}"
+virt-make-fs --partition --size=512M --type=vfat "${ML_ARTIFACTS_DIR}" "${QEMU_FILE}" || log error "virt-make-fs failed!"
 
 log info "make ${ML_CARD_TYPE}.img bootable"
 "${ML_BIN}/canon_bootdisk.py" -pi "${QEMU_FILE}"
