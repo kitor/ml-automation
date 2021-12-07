@@ -15,6 +15,11 @@ Scripts that will deploy ML build ( currently non-zip only ) to card / qemu virt
 
 Camera model is required as 1st argument.
 
+### `ml_get_qemu_dir $MODEL`
+Returns absolute path to QEMU DIR configured for particular model.
+
+Example usage: `cd $(ml_get_qemu_dir R)`
+
 ### `ml_card_deploy`
 Script that will deploy artifacts on card. Called with `sudo` by `ml_deploy`, can be called directly.
 
@@ -69,7 +74,7 @@ see `.config` that I shamelessly left in repo.
 ## Usage scenarios
 __enable all features in shell__
 
-`source /path/to/checkout/.activate`
+`source /path/to/checkout/ml_env`
 
 _( or just put it in `.zshrc` / `.bashrc`)_
 

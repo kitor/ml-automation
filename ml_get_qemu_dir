@@ -1,0 +1,21 @@
+#!/bin/bash
+
+. "${0%/*}/ml_env"
+
+export ML_BUILD_MODEL="${1}"
+
+. "${ML_BIN}/lib/ml_common"
+
+set_camera_env ${ML_BUILD_MODEL}
+
+#qemu-specific paths
+export QEMU_DIR="${ML_ROOT}/qemu-eos${ML_QEMU_TYPE}"
+export QEMU_FILE="${QEMU_DIR}/${ML_CARD_TYPE}.img"
+
+log info "cd ML QEMU DIR"
+log info "==========="
+log info "QEMU_DIR      ${QEMU_DIR}"
+log info "MODEL         ${ML_BUILD_MODEL}"
+log info "==========="
+
+echo ${QEMU_DIR}
