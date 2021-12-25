@@ -12,7 +12,7 @@ def main():
     if not args.all:
 	# check if file exists
         if not os.path.isfile(args.file):
-            print("File not found: {}".format(file))
+            print("File not found: {}".format(args.file))
             exit(1)
 
         parseFile(args)
