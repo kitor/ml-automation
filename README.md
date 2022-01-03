@@ -11,9 +11,11 @@ Scripts that convert raw memory dumps into PNG files.
 I think I based processing on some existing script, but I can't recall the source now.
 
 ### `ml_deploy`, `ml_deploy_qemu`
-Scripts that will deploy ML build ( currently non-zip only ) to card / qemu virtual card
+Scripts that will deploy ML build  to card / qemu virtual card
 
 Camera model is required as 1st argument.
+
+If 2nd argument is `zip` last zip will be deployed, else only `autoexec.bin` and `*.sym`
 
 ### `ml_get_qemu_dir $MODEL`
 Returns absolute path to QEMU DIR configured for particular model.
@@ -24,6 +26,8 @@ Example usage: `cd $(ml_get_qemu_dir R)`
 Script that will deploy artifacts on card. Called with `sudo` by `ml_deploy`, can be called directly.
 
 Camera model is required as 1st argument.
+
+If 2nd argument is `zip` last zip will be deployed, else only `autoexec.bin` and `*.sym`
 
 ### `remake`
 Shell alias that runs `make clean` and then `make`, passing all arguments.

@@ -2,15 +2,14 @@
 
 . "${0%/*}/ml_env"
 
-# input args
-[[ -z ${1} ]] && "Build model not defined!"
-#[[ -z ${2} ]] && "Target card device not defined!"
 export ML_BUILD_MODEL="${1}"
-#export ML_CARD_DEVICE="${2}"
+export ML_DEPLOY_MODE="${2}"
+
+# input args
+[[ -z ${ML_BUILD_MODEL} ]] && log error "Build model not defined!"
 
 . "${ML_BIN}/lib/ml_common"
 . "${ML_BIN}/lib/ml_deploy_common"
-
 
 function umount_card(){
     sync
@@ -20,6 +19,19 @@ function umount_card(){
 function mount_card(){
     mkdir -p "${ML_CARD_MOUNT_DIR}" || log error "Cannot create directory for card mount"
     mount -t "${ML_CARD_FS}" "${ML_CARD_DEVICE}" "${ML_CARD_MOUNT_DIR}" || log error "Unable to mount card!"
+}
+
+function deploy_autoexec(){
+    log info "Deploying autoexec.bin and symbol files"
+    cp "${ML_ARTIFACTS_DIR}/autoexec.bin" "${ML_CARD_MOUNT_DIR}" || log error "Unable to copy autoexec.bin to card!"
+    mkdir -p "${ML_CARD_MOUNT_DIR}"/ML/modules
+    cp -r ${ML_ARTIFACTS_DIR}/*.sym "${ML_CARD_MOUNT_DIR}"/ML/modules || log error "Unable to copy *.sym to card!"
+}
+
+function deploy_zip(){
+    log info "Deploying zip"
+    cp -r "${ML_ARTIFACTS_DIR}/"* "${ML_CARD_MOUNT_DIR}/" || log error "Unable to copy files to card!"
+    return
 }
 
 log info "Deploy files to card"
@@ -47,12 +59,7 @@ echo
 
 mount_card
 
-cp "${ML_ARTIFACTS_DIR}/autoexec.bin" "${ML_CARD_MOUNT_DIR}" || log error "Unable to copy autoexec.bin to card!"
-if [[ ! -z "${ML_TYPE}" ]]; then
-    cp -r ${ML_ARTIFACTS_DIR}/ML "${ML_CARD_MOUNT_DIR}" || log error "Unable to copy ML directory to card!"
-    mkdir -p "${ML_CARD_MOUNT_DIR}"/ML/modules
-    cp -r ${ML_ARTIFACTS_DIR}/*.sym "${ML_CARD_MOUNT_DIR}"/ML/modules || log error "Unable to copy *.sym to card!"
-fi
+[[ "${ML_DEPLOY_MODE}" == "zip" ]] && deploy_zip || deploy_autoexec
 
 log info "Card after deployment:"
 ls -l "${ML_CARD_MOUNT_DIR}"

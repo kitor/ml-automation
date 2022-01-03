@@ -3,6 +3,7 @@
 . "${0%/*}/ml_env"
 
 export ML_BUILD_MODEL="${1}"
+export ML_DEPLOY_MODE="${2}"
 
 . "${ML_BIN}/lib/ml_common"
 

@@ -1,15 +1,34 @@
 
-function create_artifact() {
+function reset_artifact_dir() {
+    log info "Reset artifacts dir"
+    rm -rf "${ML_ARTIFACTS_DIR}"
+    mkdir -p "${ML_ARTIFACTS_DIR}" || log error "Unable to create artifacts diretory!"
+}
+
+function create_zip_artifact(){
+    log info "Create artifact from zip..."
+
+    local ML_ZIP=$(ls -Art *.zip | tail -n 1)
+    [[ -z "${ML_ZIP}" ]] && log error "Unable to find any zip file"
+    log info "Zip found: ${ML_ZIP}"
+
+    #always reset
+    reset_artifact_dir
+
+    unzip "${ML_ZIP}" -d "${ML_ARTIFACTS_DIR}" || log error "Unzip failed!"
+}
+
+function create_autoexec_artifact() {
+    [[ ! -d "${ML_ARTIFACTS_DIR}" ]] && reset_artifact_dir
+
+    log info "Remove old autoexec.bin artifacts"
+    rm -f "${ML_ARTIFACTS_DIR}/autoexec.bin" || log warning "autoexec.bin does not exist"
+    rm -f "${ML_ARTIFACTS_DIR}/"*.sym || log warning "*.sym does not exist"
+
     log info "Create autoexec.bin artifact..."
-    pushd "${ML_BUILD_DIR}" > /dev/null
 
     cp autoexec.bin "${ML_ARTIFACTS_DIR}" || log error "Unable to artifact autoexec.bin"
     cp *.sym "${ML_ARTIFACTS_DIR}" || log warning "Unable to artifact *.sym"
-    log info "Artifacts dir content:"
-    ls -l "${ML_ARTIFACTS_DIR}"
-
-    popd > /dev/null
-    echo
 }
 
 set_camera_env ${ML_BUILD_MODEL}
@@ -21,23 +40,23 @@ else
     export ML_BUILD_DIR="${ML_SRC}/${ML_TYPE}"
 fi
 
+# select what to deploy
+[[ -z ${ML_DEPLOY_MODE} ]] && export ML_DEPLOY_MODE="autoexec_only"
+
 log info "Deploy common"
 log info "============="
 log info "Platform       ${ML_PLATFORM}"
+log info "Deploy mode    ${ML_DEPLOY_MODE}"
 log info "Card           Type: ${ML_CARD_TYPE} Device: ${ML_CARD_DEVICE}"
 log info "Build dir      ${ML_BUILD_DIR}"
 log info "Artifacts dir  ${ML_ARTIFACTS_DIR}"
 log info "============="
 echo
 
+pushd "${ML_BUILD_DIR}" > /dev/null
+[[ "${ML_DEPLOY_MODE}" == "zip" ]] && create_zip_artifact || create_autoexec_artifact
+popd > /dev/null
 
-if [ ! -d "${ML_ARTIFACTS_DIR}" ]; then
-    log info "Create artifacts dir if missing"
-    mkdir -p "${ML_ARTIFACTS_DIR}" || log error "Unable to create artifacts diretory!"
-fi
-
-log info "Remove old autoexec.bin artifacts"
-rm -f "${ML_ARTIFACTS_DIR}/autoexec.bin" || log warning "autoexec.bin does not exist"
-rm -f "${ML_ARTIFACTS_DIR}/"*.sym || log warning "*.sym does not exist"
-
-create_artifact
+log info "Artifacts dir content:"
+ls -l "${ML_ARTIFACTS_DIR}"
+echo
